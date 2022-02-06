@@ -27,12 +27,16 @@ from selenium.webdriver.common.action_chains import ActionChains
 driverpath = 'chromedriver.exe'
 driver = webdriver.Chrome(driverpath)
 
-# +
 #offset 조정하기
 #이곳에서 offset 숫자를 바꿔가며 개인 PC에 맞는 offset 값을 찾으시길 바랍니다.
-
+#바로 뜨는 경우
 driver.maximize.window()
+url = "https://www.google.com/maps/search/여의도 IFC몰" 
+actions = ActionChains(driver)
 
+
+actions.move_to_element_with_offset(driver.find_element_by_tag_name('body'), 0,0)
+actions.move_by_offset(200, 0).context_click().perform() # offset 조정하며 빨간 좌표에 우클릭을 잘 하는지 해당 블럭 반복 실행
 
 # +
 '''알고리즘 설명
