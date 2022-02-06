@@ -28,6 +28,13 @@ driverpath = 'chromedriver.exe'
 driver = webdriver.Chrome(driverpath)
 
 # +
+#offset 조정하기
+#이곳에서 offset 숫자를 바꿔가며 개인 PC에 맞는 offset 값을 찾으시길 바랍니다.
+
+driver.maximize.window()
+
+
+# +
 '''알고리즘 설명
 해당 코드는 geopy로 좌표 획득이 불가능한 매장들에 한해 무식한 방법으로 위도, 경도를 알아내는 코드입니다.
 시간이 많이 걸리니 많은 양의 데이터를 처리하지 않으시길 권장합니다
