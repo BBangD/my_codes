@@ -27,13 +27,14 @@ import numpy as np
 LOADING = 2.5
 BTN = 0.2
 SCROLL = 0.3
-df = pd.read_csv('시군구csv.csv',encoding='cp949')
-geolist=df.columns.tolist()
+
+geolist=['서울특별시 종로구', '서울특별시 용산구', '서울특별시 성동구', '서울특별시 광진구', '서울특별시 중랑구', '서울특별시 강북구', '서울특별시 노원구', '서울특별시 서대문구', '서울특별시 마포구', '서울특별시 양천구', '서울특별시 강서구', '서울특별시 구로구', '서울특별시 영등포구', '서울특별시 관악구', '서울특별시 서초구', '서울특별시 강남구', '서울특별시 송파구', '서울특별시 강동구', '부산광역시 중구', '부산광역시 서구', '부산광역시 동구', '부산광역시 영도구', '부산광역시', '대구광역시 ', '인천광역시 중구', '인천광역시 연수구', '인천광역시 부평구', '인천광역시 계양구', '광주광역시', '대전광역시', '울산광역시', '세종시', '수원시', '성남시', '안양시', '광명시', '평택시', '동두천시', '안산시', '고양시', '과천시', '남양주시', '시흥시', '의왕시', '하남시', '용인시', '파주시', '이천시', '안성시', '김포시', '양주시', '포천시', '여주시', '강원도', '충청북도', '충청남도', '전라북도', '전라남도', '경상북도', '경상남도', '제주시',
+ '창원']
 
 
 path="chromedriver.exe"
 browser = webdriver.Chrome(path)
-keyword = ['블루보틀','빽다방','이디야']
+keyword = ['블루보틀'] #키워드 리스트
 
 
     #--------------------------------------------
@@ -86,7 +87,7 @@ for keyword in keyword:
         for i in info:
             id_list.append(i.get("data-sid"))
 
-        print("Completely Crawling : Name & id")
+        print("Completely Crawled : Name & id")
         print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
 
 
@@ -132,8 +133,9 @@ for keyword in keyword:
                 browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(SCROLL)
                 #print("scroll")
-                browser.find_element_by_xpath('/html/body/div[3]/div/div/div[2]/div[5]/div[4]/div[4]/div[2]').click()
-                #print("BTN Click")
+                browser.find_element_by_xpath('/html/body/div[3]/div/div/div[2]/div[5]/div[4]/div[3]/div[2]/a').click()
+                #스크롤 되지 않을 경우 더보기 button tag의 xpath 값 수정하여 입력
+            
                 time.sleep(BTN)
                 cnt += 1
                 if cnt >= 200:
@@ -164,23 +166,31 @@ for keyword in keyword:
                 try:
                     user = rv.find("div",{"class":"_16RxQ"}) #유저 닉네임
                     content = rv.find("span",{"class":"WoYOw"}) #리뷰 내용
-                    
+                    visitday = rv.find('time').text#작성시간
+                   
+                    star = rv.find('span',{'class':'_1fvo3 Sv1wj'})
                     user = user.text
                     
-
                     #5-4. 정제 - 방문자 리뷰의 내용이 없고 사진만 있는 경우 결측치 "No Contents"로 채우기
                     if content != None:
                         content = content.text
                     else:
                         content = "No Contents"
-                    review_visitor_list.append([shop_name[id], user, content])
+                    if star!= None:
+                        star = star.text
+                    else:
+                        star = 'No score'
+                    review_visitor_list.append([shop_name[id], user,visitday,star, content])
                     review_num += 1
                 except:
                     print("Something Error")
+
         else:
             user = "No review" 
             content = "No review"
-            review_visitor_list.append([shop_name[id], user, content])
+            star = 'no score'
+            visitday = 'no date'
+            review_visitor_list.append([shop_name[id], user, visitday, star, content])
 
         print("shop :", shop_name[id])
         print("review_num :",review_num)
@@ -190,14 +200,14 @@ for keyword in keyword:
 
 
     #5-5. DataFrame - 각 행과 열에 맞게 데이터 구조화
-    review_visitor_list_np = np.array(review_visitor_list).reshape(-1, 3)
-    review_visitor = pd.DataFrame(review_visitor_list_np, columns = ["shop_name","user","content"])
+    review_visitor_list_np = np.array(review_visitor_list).reshape(-1, 5)
+    review_visitor = pd.DataFrame(review_visitor_list_np, columns = ["shop_name","user",'time','score',"content"])
     times = str(dt.datetime.now())[:str(dt.datetime.now()).index('.')]
     times= re.sub(' ', '_', times)
     times = re.sub(':', '_', times)
     review_visitor.to_csv("navermap_" + keyword + times+"_VisitorReview.csv", index = False)
 
-    print("Completely Crawling : Visitor Review of ", keyword)
+    print("Completely Crawled : Visitor Review of ", keyword)
     #time.sleep(LOADING)
 # else:
 #     None
@@ -272,10 +282,3 @@ for keyword in keyword:
 
 
 
-# -
-
-len(shop_id)
-
-a= pd.DataFrame({'a':123},index=[0])
-import datetime as dt
-a.to_csv('{} test.csv'.format(now))
