@@ -30,15 +30,15 @@ driver = webdriver.Chrome(driverpath)
 #offset 조정하기
 #이곳에서 offset 숫자를 바꿔가며 개인 PC에 맞는 offset 값을 찾으시길 바랍니다.
 #바로 뜨는 경우
-driver.maximize.window()
+driver.maximize_window()
 url = "https://www.google.com/maps/search/여의도 IFC몰" 
 actions = ActionChains(driver)
+driver.get(url)
 
 
 actions.move_to_element_with_offset(driver.find_element_by_tag_name('body'), 0,0)
 actions.move_by_offset(200, 0).context_click().perform() # offset 조정하며 빨간 좌표에 우클릭을 잘 하는지 해당 블럭 반복 실행
 
-# +
 '''알고리즘 설명
 해당 코드는 geopy로 좌표 획득이 불가능한 매장들에 한해 무식한 방법으로 위도, 경도를 알아내는 코드입니다.
 시간이 많이 걸리니 많은 양의 데이터를 처리하지 않으시길 권장합니다
@@ -50,12 +50,14 @@ actions.move_by_offset(200, 0).context_click().perform() # offset 조정하며 �
 어떤 방식으로 매장 정보로 들어가냐에 따라 화면 상에 뜨는 장소 포인터의 위치가 달라지게 됩니다.
 따라서 try를 이용한 예외처리를 통해 검색목록이 나올 경우에는 그렇지 않을 때보다 더 오른 쪽(offset +200만큼)을 클릭하게 하여
 느리지만 정확한 좌표값을 찾아냅니다'''
-# df = pd.read_excel('구글맵 좌표입력.xlsx',sheet_name = 'fail_sheet')
+df = pd.read_excel('네이버맵 좌표입력.xlsx',sheet_name = 'fail_sheet')
 from tqdm.notebook import tqdm
 tqdm.pandas()
 url = "https://www.google.com/maps/search/" 
 driver.get(url)
 driver.maximize_window()
+css = '#pane > div > div.Yr7JMd-pane-content.cYB2Ge-oHo7ed > div > div > div.x3AX1-LfntMc-header-title > div.x3AX1-LfntMc-header-title-ma6Yeb-haAclf > div.x3AX1-LfntMc-header-title-ij8cu > div:nth-child(1) > h1'
+Unfound_crd = {'crd':[],'shopname' : []}
 for k in tqdm(range(len(df['crd']))): #dataframe 내에 있는 장소명을 불러옵니다
     
     url = "https://www.google.com/maps/search/" + df['shop_name'][k]
@@ -71,18 +73,21 @@ for k in tqdm(range(len(df['crd']))): #dataframe 내에 있는 장소명을 불�
         actions.move_by_offset(200, 0).context_click().perform() # offset 200만큼 이동하기
         driver.implicitly_wait(1.5)
         coor = driver.find_element_by_css_selector('#action-menu > ul > li:nth-child(1) > div.nbpPqf-menu-x3Eknd-text-haAclf > div.nbpPqf-menu-x3Eknd-text').text
-        df['crd'][k]=[coor]
-    except:
-        driver.implicitly_wait(2)
+        Unfound_crd['crd'].append([coor])
+        Unfound_crd['shopname'].append(driver.find_element_by_css_selector(css).text)
+    except: #바로뜨는경우
+        time.sleep(2)
         actions = ActionChains(driver)
         actions.move_to_element_with_offset(driver.find_element_by_tag_name('body'), 0,0)
         actions.move_by_offset(0, 0).context_click().perform()
         driver.implicitly_wait(1.5)
         coor = driver.find_element_by_css_selector('#action-menu > ul > li:nth-child(1) > div.nbpPqf-menu-x3Eknd-text-haAclf > div.nbpPqf-menu-x3Eknd-text').text
-        df['crd'][k]=[coor]
-    print(coor)
-    
-#df.to_excel('좌표안긁힌거 구글맵.xlsx')
+        Unfound_crd['crd'].append([coor])
+        Unfound_crd['shopname'].append(driver.find_element_by_css_selector(css).text)
+df['crd'] = Unfound_crd['crd']
+df['shopname'] = Unfound_crd['shopname']
+df.to_excel('좌표안긁힌거 네이버맵.xlsx')
 
-# +
-#
+driver.find_element_by_css_selector(css).text
+
+df['found_shopname'][k] = driver.find_element_by_css_selector(css).text

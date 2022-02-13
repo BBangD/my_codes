@@ -114,3 +114,5 @@ df['crd'] = df['주소'].progress_apply(Locate_crd)
 # -
 
 df.to_excel('구글맵 좌표입력.xlsx')
+
+# !jt -t gruvboxd -f D2Coding -fs 12 -tf roboto -tfs 13 -nf opensans -nfs 12 -ofs 12 -dfs 12 -cellw 95% -lineh 150 -T -N
