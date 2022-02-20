@@ -42,17 +42,17 @@ def Categorize_Words_With_Dic(username, prname):
     #  [기준단어 b, 변형단어 b-1, 변형단어 b-2,... ],
     #  ... ]
     def copy_category_info(item):
-        if item in all_V_check:
+        if item in all_V_check: #만약 표제화사전 내에 처리할 단어가 존재할 경우
             for k in range(len(all_V)):
                 if item in all_V[k]:
-                    lemmadf = Project_dic.loc[Project_dic['tag'].isin(all_V[k])]
+                    lemmadf = Project_dic.loc[Project_dic['tag'].isin(all_V[k])] #표제화 기준단어와 변형단어를 포함한 list를 찾아내어 해당 list를 tag로 하는 데이터프레임을 생성합니다.
                     if len(lemmadf) == 0:
                         break
                     valuecount = list(map(lambda x: sum(lemmadf.iloc[x] == ''), range(len(lemmadf))))
-                    mostvalue = min(valuecount)
+                    mostvalue = min(valuecount)  # 가장 많은 값이 들어있는 행을 찾아냅니다.
                     index = valuecount.index(mostvalue)
                     Expanded_Frequency.loc[Expanded_Frequency.loc[Expanded_Frequency["tag"] == item].
-                                               index, 'Clean_Characters':] = lemmadf.iloc[index, 2:].tolist()
+                                               index, 'Clean_Characters':] = lemmadf.iloc[index, 2:].tolist() #표제화단어 list에서 가장 많은 값을 가지고 있는 행의 코딩을 복사해 옵니다.
 
         else:
 
