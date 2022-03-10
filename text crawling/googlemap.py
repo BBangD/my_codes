@@ -33,16 +33,15 @@ SCROLL = 1
 2~4단계 : 점포명 & 점포별 url 크롤링
 5단계 : 점포별 리뷰 크롤링
 '''
-# import pickle
-# with open('시군구.pkl','rb') as f:
-#     geolist = pickle.load(f)
+
 df = pd.read_csv('시군구csv.csv',encoding='cp949')
 geolist=df.columns.tolist()
+
 
 path="chromedriver.exe"
 browser = webdriver.Chrome(path)
 language = "ko"
-keyword = ['공차','빽다방','이디야']
+keyword = ['블루보틀']
 LOADING = 3
 SCROLL = 1
 global time
@@ -190,7 +189,7 @@ for keyword in keyword:
 
             try:
                 review_num_txt = soup.find("div", {"class" : "gm2-caption"}).text
-                review_num = int(re.findall("\d+", review_num_txt)[0])
+                review_num = int(re.sub(r'[^0-9]', '', review_num_txt))
                 #print(review_num_txt)
                 #print("review_num :",review_num)
                 num_of_pagedowns = int(review_num/9)
@@ -219,10 +218,12 @@ for keyword in keyword:
                 user = j.find("div",{"class":"ODSEW-ShBeI-title"}) #유저 닉네임
                 score = j.find("span",{"class":"ODSEW-ShBeI-H1e3jb"}) #별점
                 content = j.find("span",{"class":"ODSEW-ShBeI-text"}) #리뷰 내용
+                days = j.find('span', {"class" : "ODSEW-ShBeI-RgZmSc-date"})
                 users = user.text
+                days = days.text
                 scores = score.get("aria-label")
                 contents = content.text
-                review_list.append([shop_name[i],users, scores, contents])
+                review_list.append([shop_name[i],users,days, scores, contents])
                 review_num += 1   
             #print(review_num)
             #print("review_list :", review_list)
@@ -239,10 +240,12 @@ for keyword in keyword:
                     user = j.find("div",{"class":"ODSEW-ShBeI-title"}) #유저 닉네임
                     score = j.find("span",{"class":"ODSEW-ShBeI-H1e3jb"}) #별점
                     content = j.find("span",{"class":"ODSEW-ShBeI-text"}) #리뷰 내용
+                    days = j.find('span', {"class" : "ODSEW-ShBeI-RgZmSc-date"})
                     users = user.text
+                    days = days.text
                     scores = score.get("aria-label")
                     contents = content.text
-                    review_list.append([shop_name[i],users, scores, contents])
+                    review_list.append([shop_name[i],users,days, scores, contents])
                     review_num += 1  
 
             #없는 리뷰
@@ -251,7 +254,8 @@ for keyword in keyword:
                 user = "No review"
                 score = "No review"
                 content = "No review"
-                review_list.append([shop_name[i],user, score, content])
+                days = 'No review'
+                review_list.append([shop_name[i],user, days,score, content])
 
         print("review_num :",review_num)
         print(i+1, " / ", len(shop_name))
@@ -266,8 +270,8 @@ for keyword in keyword:
     times = str(dt.datetime.now())[:str(dt.datetime.now()).index('.')]
     times= re.sub(' ', '_', times)
     times = re.sub(':', '_', times)
-    review_list_np = np.array(review_list).reshape(-1, 4)
-    review_visitor = pd.DataFrame(review_list_np, columns=["shop_name", "user", "score", "content"])
+    review_list_np = np.array(review_list).reshape(-1, 5)
+    review_visitor = pd.DataFrame(review_list_np, columns=["shop_name", "user", "time","score", "content"])
     review_visitor.to_excel("googlemap_" + keyword + "_Review_" + times + ".xlsx", index=False)
 
     print("Completely Crawled : Review of ", keyword)
@@ -276,28 +280,3 @@ for keyword in keyword:
 
 
 
-# -
-
-review_list_np = np.array(review_list).reshape(-1, 4)
-review_visitor = pd.DataFrame(review_list_np, columns=["shop_name", "user", "score", "content"])
-review_visitor.to_excel("googlemap_" + keyword + "_Review_" + time + ".xlsx", index=False)
-
-import csv
-import pickle
-with open('시군구.pkl','rb') as f:
-    geolist = pickle.load(f)
-with open('시군구csv.csv', 'w', newline='') as f: 
-    writer = csv.writer(f) 
-    writer.writerow(geolist)
-
-
-f = open('시군구csv.csv','r')
-reader = csv.reader(f)
-geolist=[]
-for k in reader:
-    geolist.append(k)
-geolist
-
-df = pd.read_csv('시군구csv.csv',encoding='cp949')
-geolist=df.columns.tolist()
-len(geolist)
